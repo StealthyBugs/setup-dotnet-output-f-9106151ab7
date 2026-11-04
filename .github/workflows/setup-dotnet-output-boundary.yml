@@ -1,0 +1,29 @@
+name: setup-dotnet undeclared output boundary
+on:
+  pull_request_target:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - id: setup
+        name: Exact-current setup-dotnet with lower body as config-file
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
+        with:
+          source-url: https://packages.invalid/index.json
+          config-file: ${{ github.event.pull_request.body }}
+          owner: controlled-owner
+        env:
+          NUGET_AUTH_TOKEN: INERT_NON_SECRET_TOKEN
+      - name: Undeclared output gate
+        if: startsWith(steps.setup.outputs.probe, 'OUT_abdf8cf3d2298bece45666c5.config')
+        shell: bash
+        run: printf '%s\n' 'BENIGN_GATE_26dfd18b429ad81b4c90455313a62103f707be80'
+      - name: Owner final status
+        if: always()
+        shell: bash
+        run: |
+          test ! -e .git
+          printf '%s\n' 'OWNER_FINAL_STATUS_OK'
